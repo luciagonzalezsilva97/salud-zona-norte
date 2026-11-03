@@ -7,6 +7,7 @@ import {
   FlyToInterpolator,
 } from 'deck.gl';
 import { supabase, supabaseConfigurado } from './supabaseClient';
+import { evento } from './analytics';
 import {
   COLORES,
   colorCss,
@@ -30,6 +31,11 @@ const VISTA_INICIAL = {
   bearing: 0,
 };
 
+// Datos que se mandan a Analytics con cada evento (sin información personal)
+function datosEvento(d) {
+  return { nombre_establecimiento: d.nombre, partido: d.partido, grupo: d.grupo };
+}
+
 // Botones "Cómo llegar" y "Llamar" (se usan en la lista y en el detalle)
 function Acciones({ d, origen }) {
   const tel = telefonoParaLlamar(d.telefono);
@@ -40,11 +46,12 @@ function Acciones({ d, origen }) {
         href={urlComoLlegar(d, origen)}
         target="_blank"
         rel="noopener noreferrer"
+        onClick={() => evento('como_llegar', datosEvento(d))}
       >
         🧭 Cómo llegar
       </a>
       {tel ? (
-        <a className="btn-accion" href={`tel:${tel}`}>
+        <a className="btn-accion" href={`tel:${tel}`} onClick={() => evento('llamar', datosEvento(d))}>
           📞 Llamar
         </a>
       ) : (
@@ -89,6 +96,14 @@ export default function App() {
     }
     cargar();
   }, []);
+
+  // Búsquedas: se envía el texto cuando la persona deja de escribir un momento
+  useEffect(() => {
+    const q = busqueda.trim();
+    if (q.length < 3) return;
+    const t = setTimeout(() => evento('search', { search_term: q }), 1200);
+    return () => clearTimeout(t);
+  }, [busqueda]);
 
   const referencia = ubicacion ?? REFERENCIA_POR_DEFECTO;
 
@@ -144,8 +159,12 @@ export default function App() {
         setUbicacion(nueva);
         setAvisoUbicacion('');
         volarA(nueva, 13);
+        evento('usar_ubicacion', { resultado: 'permitida' }); // no se envían las coordenadas
       },
-      () => setAvisoUbicacion('No pudimos obtener tu ubicación. Revisá los permisos del navegador.'),
+      () => {
+        setAvisoUbicacion('No pudimos obtener tu ubicación. Revisá los permisos del navegador.');
+        evento('usar_ubicacion', { resultado: 'denegada' });
+      },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   }
@@ -164,6 +183,7 @@ export default function App() {
   function elegir(d) {
     setSeleccionado(d.id);
     volarA(d);
+    evento('ver_establecimiento', datosEvento(d));
   }
 
   // 5) Capas de deck.gl
@@ -269,11 +289,20 @@ export default function App() {
           <input
             type="checkbox"
             checked={soloGuardia}
-            onChange={(e) => setSoloGuardia(e.target.checked)}
+            onChange={(e) => {
+              setSoloGuardia(e.target.checked);
+              evento('filtro_guardia', { solo_guardia: e.target.checked ? 'si' : 'no' });
+            }}
           />
           Solo con guardia
         </label>
-        <select value={partido} onChange={(e) => setPartido(e.target.value)}>
+        <select
+          value={partido}
+          onChange={(e) => {
+            setPartido(e.target.value);
+            evento('filtro_partido', { partido: e.target.value });
+          }}
+        >
           {partidos.map((p) => (
             <option key={p}>{p}</option>
           ))}
@@ -356,7 +385,8 @@ export default function App() {
 
       <footer className="pie">
         Información de referencia con datos abiertos de la Provincia de Buenos Aires. Confirmá por teléfono
-        antes de ir. En una emergencia llamá al 107 (SAME) o al 911.
+        antes de ir. En una emergencia llamá al 107 (SAME) o al 911. Esta página usa Google Analytics para
+        medir el uso de forma anónima.
       </footer>
     </div>
   );
