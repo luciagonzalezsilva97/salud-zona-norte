@@ -52,3 +52,19 @@ select { padding: 8px; border-radius: 8px; border: 1px solid #d1d5db; background
   .lista { height: auto; max-height: 420px; }
   .kpis { grid-template-columns: 1fr; }
 }
+
+/* ---- Buscador, acciones, detalle y leyenda ---- */
+.buscador { padding: 9px 12px; border-radius: 8px; border: 1px solid #d1d5db; min-width: 240px; flex: 1 1 240px; max-width: 360px; font-size: .95rem; }
+.leyenda { flex-wrap: wrap; max-width: calc(100% - 20px); gap: 4px 10px; }
+.leyenda-item { display: inline-flex; align-items: center; gap: 5px; }
+.punto { margin-right: 2px; flex: none; }
+.acciones { display: flex; gap: 8px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+.btn-accion { display: inline-block; padding: 6px 11px; border-radius: 8px; font-size: .82rem; text-decoration: none; background: #eef2f7; color: #1f2937; border: 1px solid #d1d5db; }
+.btn-accion:hover { background: #e2e8f0; }
+.btn-accion.principal { background: #0f6b4f; color: #fff; border-color: #0f6b4f; }
+.btn-accion.principal:hover { background: #0c5a42; }
+.sin-tel { font-size: .78rem; color: #9ca3af; }
+.detalle { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; }
+.detalle-top { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; }
+.cerrar { background: transparent; border: 0; cursor: pointer; color: #6b7280; font-size: 1rem; }
+.lista li .punto { vertical-align: baseline; }
